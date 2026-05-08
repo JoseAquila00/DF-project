@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import cv2
+from filters import apply_fourier, apply_canny, improve_contrast
 
 class Manager:
 
@@ -39,25 +40,37 @@ class Manager:
         self.filters_frame.pack(pady=20)
         
         #bottone filtro 1
-        self.fourier_button = tk.Button(self.filters_frame,text="Spettro di Fourier",width=22,height=2)
+        self.fourier_button = tk.Button(self.filters_frame,text="Spettro di Fourier",width=22,height=2, command=self.on_fourier_click)
         self.fourier_button.grid(row=0,column=0,padx=20, pady=10)
         #riquadro output filtro 1
-        self.fourier_output = tk.Label(self.filters_frame,text="Output Fourier",bg="lightgray",width=35,height=12)
-        self.fourier_output.grid(row=1,column=0,padx=20)
+        self.fourier_frame = tk.Frame(self.filters_frame,width=300,height=220,bg="lightgray")
+        self.fourier_frame.grid(row=1, column=0, padx=20)
+        self.fourier_frame.grid_propagate(False)
+
+        self.fourier_output = tk.Label(self.fourier_frame,text="Output Fourier",bg="lightgray")
+        self.fourier_output.place(relx=0.5, rely=0.5, anchor="center")
 
         #bottone filtro 2
-        self.canny_button = tk.Button(self.filters_frame,text="Canny",width=22,height=2)
+        self.canny_button = tk.Button(self.filters_frame,text="Canny",width=22,height=2, command=self.on_canny_click)
         self.canny_button.grid(row=0,column=1,padx=20, pady=10)
         #riquadro output filtro 2
-        self.canny_output = tk.Label(self.filters_frame,text="Output Canny",bg="lightgray",width=35,height=12)
-        self.canny_output.grid(row=1,column=1,padx=20)
+        self.canny_frame = tk.Frame(self.filters_frame,width=300,height=220,bg="lightgray")
+        self.canny_frame.grid(row=1, column=1, padx=20)
+        self.canny_frame.grid_propagate(False)
+
+        self.canny_output = tk.Label(self.canny_frame,text="Output Canny",bg="lightgray")
+        self.canny_output.place(relx=0.5, rely=0.5, anchor="center")
 
         #bottone filtro 3
-        self.contrast_button = tk.Button(self.filters_frame,text="Miglioramento Contrasto",width=22,height=2)
+        self.contrast_button = tk.Button(self.filters_frame,text="Miglioramento Contrasto",width=22,height=2, command=self.on_contrast_click)
         self.contrast_button.grid(row=0,column=2,padx=20, pady=10)
         #riquadro output filtro 3
-        self.contrast_output = tk.Label(self.filters_frame,text="Output Miglioramento Contrasto",bg="lightgray",width=35,height=12)
-        self.contrast_output.grid(row=1,column=2,padx=20)
+        self.contrast_frame = tk.Frame(self.filters_frame,width=300,height=220,bg="lightgray")
+        self.contrast_frame.grid(row=1, column=2, padx=20)
+        self.contrast_frame.grid_propagate(False)
+
+        self.contrast_output = tk.Label(self.contrast_frame,text="Output Miglioramento\nContrasto",bg="lightgray")
+        self.contrast_output.place(relx=0.5, rely=0.5, anchor="center")
 
             
     # CARICAMENTO IMMAGINE
@@ -100,4 +113,45 @@ class Manager:
             self.original_image,
             self.original_image_label,
             size=(400, 300)
+        )
+
+    def on_fourier_click(self):
+        if self.original_image is None:
+            return
+
+        result = apply_fourier(self.original_image)
+
+        self.show_image(
+            result,
+            self.fourier_output,
+            size=(300, 220)
+        )
+
+    def on_canny_click(self):
+        if self.original_image is None:
+            return
+
+        t1 = 50
+        t2 = 150
+
+        result = apply_canny(self.original_image, t1, t2)
+
+        self.show_image(
+            result,
+            self.canny_output,
+            size=(300, 220)
+        )
+
+    def on_contrast_click(self):
+        if self.original_image is None:
+            return
+
+        alpha = 1.5
+
+        result = improve_contrast(self.original_image, alpha)
+
+        self.show_image(
+            result,
+            self.contrast_output,
+            size=(300, 220)
         )
