@@ -31,7 +31,7 @@ class Manager:
         self.load_button.grid(row=0,column=0,padx=20)
 
         #riquadro immagine
-            # contenitore immagine originale
+        # contenitore immagine originale
         self.original_frame = ctk.CTkFrame(self.top_frame,width=400,height=300,corner_radius=25,fg_color="#F5F6FA")
         self.original_frame.grid(row=0,column=1,padx=20)
         self.original_frame.grid_propagate(False)
@@ -88,18 +88,18 @@ class Manager:
     # =====================================
     def show_image(self, image, label, size=(400, 300)):
             # se immagine in scala di grigi
-        if len(image.shape) == 2:
-            image_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        else:
+        if len(image.shape) == 2:# ha 2 dimensioni (altezza, larghezza)
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)# converte in RGB (3 canali) per compatibilità con tkinter
+        else:#stessa cosa se è a colori
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        image_pil = Image.fromarray(image_rgb)
-        image_pil.thumbnail(size)
+        image_pil = Image.fromarray(image_rgb)#prende la matrice di pixel e la converte in una vera immagine gestibile da PIL (Pillow)
+        image_pil.thumbnail(size)#ridimensiono mantenendo però le proporzioni dell'immagine originale (non distorce l'immagine)
 
-        image_tk = ImageTk.PhotoImage(image_pil)
-
-        label.configure(image=image_tk, text="")
-        label.image = image_tk
+        image_tk = ImageTk.PhotoImage(image_pil)#Tkinter può mostrare immagini solo in formato PhotoImage.
+    
+        label.configure(image=image_tk, text="")#Mette l’immagine dentro la label e rimuove il testo (che era "Nessuna immagine caricata" o simile)
+        label.image = image_tk#Senza questa riga l’immagine potrebbe sparire
 
     def load_image(self):
         # apre finestra selezione file
@@ -114,7 +114,7 @@ class Manager:
         if not file_path:
             return
 
-        # legge immagine con OpenCV
+        # legge immagine con OpenCV e quindi formato BGR
         self.original_image = cv2.imread(file_path)
 
         if self.original_image is None:
@@ -142,6 +142,10 @@ class Manager:
         if self.original_image is None:
             return
 
+        #queste due soglie perchè Canny lavora con due soglie: una più bassa per identificare i bordi deboli e una più alta per identificare i bordi forti. 
+        # Se il valore è minore di t1 → il bordo è troppo debole → lo elimina.
+        # Se il valore è maggiore di t2 → il bordo è forte → lo tiene.
+        # Se il valore è tra t1 e t2 → lo tiene solo se è collegato a un bordo forte vicino.
         t1 = 50
         t2 = 150
 
@@ -157,9 +161,12 @@ class Manager:
         if self.original_image is None:
             return
 
-        slider_value = self.contrast_slider.get()
+        slider_value = self.contrast_slider.get()#prendo il valore attuale dello slider (da -100 a 100)
 
-        alpha = max(0.1, 1 + (slider_value / 100))
+        alpha = max(0.2, 1 + (slider_value / 100))#calcolo il fattore di contrasto (alpha) in base al valore dello slider. 
+        # Se slider_value è 0 → alpha = 1 (nessun cambiamento). 
+        # Se slider_value è positivo → alpha > 1 (aumenta il contrasto). 
+        # Se slider_value è negativo → alpha < 1 (diminuisce il contrasto). La funzione max(0.2, ...) serve a evitare che alpha diventi troppo piccolo o negativo, il che potrebbe rendere l'immagine completamente nera o invertita.
         
         result = improve_contrast(
             self.original_image,
